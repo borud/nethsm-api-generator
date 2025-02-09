@@ -3,9 +3,19 @@
 .PHONY: clean
 
 OUTPUT_DIR=nethsm
-TARGET_REPOSITORY=github.com/borud/nethsm
+TARGET_MODULE=github.com/borud/nethsm
+GIT_REPOSITORY=git@github.com:borud/nethsm.git
 
-all: generate fixups
+all: prepare generate fixups
+
+prepare:
+	@rm -rf ${OUTPUT_DIR}
+	@git clone ${GIT_REPOSITORY}
+	@rm -rf ${OUTPUT_DIR}/* 
+	@rm -rf ${OUTPUT_DIR}/.openapi-generator* 
+	@rm -rf ${OUTPUT_DIR}/.travis.yml 
+	@rm -rf ${OUTPUT_DIR}/.gitignore
+	@cp LICENSE ${OUTPUT_DIR}/.
 
 generate:
 	docker run --rm -ti \
@@ -21,18 +31,18 @@ fixups:
 	# Fix the module name in go.mod (cross-platform)
 	@echo "Fixing go.mod module name..."
 	@if [ "$$(uname)" = "Darwin" ]; then \
-		sed -i '' 's|^module github.com/GIT_USER_ID/GIT_REPO_ID|module ${TARGET_REPOSITORY}|' nethsm/go.mod; \
+		sed -i '' 's|^module github.com/GIT_USER_ID/GIT_REPO_ID|module ${TARGET_MODULE}|' nethsm/go.mod; \
 	else \
-		sed -i 's|^module github.com/GIT_USER_ID/GIT_REPO_ID|module ${TARGET_REPOSITORY}|' nethsm/go.mod; \
+		sed -i 's|^module github.com/GIT_USER_ID/GIT_REPO_ID|module ${TARGET_MODULE}|' nethsm/go.mod; \
 	fi
 
 	# Fix import path in test files
 	@echo "Fixing import path in api_default_test.go..."
 	@if [ -f nethsm/test/api_default_test.go ]; then \
 		if [ "$$(uname)" = "Darwin" ]; then \
-			sed -i '' 's|openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"|openapiclient "${TARGET_REPOSITORY}"|' nethsm/test/api_default_test.go; \
+			sed -i '' 's|openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"|openapiclient "${TARGET_MODULE}"|' nethsm/test/api_default_test.go; \
 		else \
-			sed -i 's|openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"|openapiclient "${TARGET_REPOSITORY}"|' nethsm/test/api_default_test.go; \
+			sed -i 's|openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"|openapiclient "${TARGET_MODULE}"|' nethsm/test/api_default_test.go; \
 		fi \
 	fi
 
